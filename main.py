@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from pydantic import BaseModel, HttpUrl
 
 app = FastAPI()
@@ -14,7 +14,7 @@ class CreateUser(User):
     password: str
 
 
-@app.post("/users", response_model=User) # 응답 모델
+@app.post("/users", response_model=User, status_code=status.HTTP_201_CREATED) # 응답 모델
 def create_user(user: CreateUser): # 요청 모델
     return user 
 
