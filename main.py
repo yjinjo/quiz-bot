@@ -1,53 +1,26 @@
 from typing import List
 
-from fastapi import FastAPI, Query, Path
-from pydantic import BaseModel, parse_obj_as
+from fastapi import FastAPI
+from pydantic import BaseModel, Field
 
 app = FastAPI()
 
-inventory = (
-    {
-        "id": 1,
-        "user_id": 1,
-        "name": "Legend Portion",
-        "price": 2500.0,
-        "amount": 100,
-    },
-    {
-        "id": 2,
-        "user_id": 1,
-        "name": "Normal Portion",
-        "price": 300.0,
-        "amount": 50,
-    },
-)
-
 
 class Item(BaseModel):
-    name: str
-    price: float
-    amount: int = 0
+    name: str = Field(..., min_length=1, max_length=100, title="Name")
+    price: float = Field(None, ge=0)
+    amount: int = Field(
+        defulat = 1,
+        gt = 0,
+        le = 100,
+        title = "Amount",
+        description = "Item's amount. You can have item between 1 and 100"
+    )
 
 
-@app.get("/users/{user_id}/inventory", response_model=List[Item])
-def get_item(
-        user_id: int = Path(..., gt=1, title='User id', description="DB's user.id"),
-        name: str = Query(None, min_length=1, max_length=2, title="Item's name")
-    ):
-    user_items = []
-    for item in inventory:
-        if item['user_id'] == user_id:
-            user_items.append(item)
-
-    response = []
-    for item in user_items:
-        if name is None:
-            response = user_items
-            break
-        if item['name'] == name:
-            response.append(item)
-
-    return response
+@app.post("/users/{user_id}/item")
+def create_item(item: Item):
+    return item
 
 
 if __name__ == '__main__':
