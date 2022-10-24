@@ -1,22 +1,53 @@
-import uvicorn
-from fastapi import FastAPI, status
-from pydantic import BaseModel, HttpUrl
+from typing import List
+
+from fastapi import FastAPI, Query, Path
+from pydantic import BaseModel, parse_obj_as
 
 app = FastAPI()
 
+inventory = (
+    {
+        "id": 1,
+        "user_id": 1,
+        "name": "Legend Portion",
+        "price": 2500.0,
+        "amount": 100,
+    },
+    {
+        "id": 2,
+        "user_id": 1,
+        "name": "Normal Portion",
+        "price": 300.0,
+        "amount": 50,
+    },
+)
 
-class User(BaseModel):
+
+class Item(BaseModel):
     name: str
-    avatar_url: HttpUrl = "https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1666370853/noticon/u30ai8t1wvq2ws9iojwx.gif"
+    price: float
+    amount: int = 0
 
 
-class CreateUser(User):
-    password: str
+@app.get("/users/{user_id}/inventory", response_model=List[Item])
+def get_item(
+        user_id: int = Path(..., gt=1, title='User id', description="DB's user.id"),
+        name: str = Query(None, min_length=1, max_length=2, title="Item's name")
+    ):
+    user_items = []
+    for item in inventory:
+        if item['user_id'] == user_id:
+            user_items.append(item)
 
+    response = []
+    for item in user_items:
+        if name is None:
+            response = user_items
+            break
+        if item['name'] == name:
+            response.append(item)
 
-@app.post("/users", response_model=User, status_code=status.HTTP_201_CREATED) # 응답 모델
-def create_user(user: CreateUser): # 요청 모델
-    return user 
+    return response
 
 
 if __name__ == '__main__':
