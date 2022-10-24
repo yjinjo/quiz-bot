@@ -1,5 +1,4 @@
 import uvicorn
-
 from fastapi import FastAPI
 from pydantic import BaseModel, HttpUrl
 
@@ -8,7 +7,7 @@ app = FastAPI()
 
 class User(BaseModel):
     name: str
-    avatar_url: Optional[HttpUrl] = "<https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1666370853/noticon/u30ai8t1wvq2ws9iojwx.gif>"
+    avatar_url: HttpUrl = "https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1666370853/noticon/u30ai8t1wvq2ws9iojwx.gif"
 
 
 class CreateUser(User):
