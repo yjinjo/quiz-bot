@@ -1,11 +1,14 @@
-from fastapi import FastAPI, Form
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, File, UploadFile
 
 app = FastAPI()
-app.mount("/statc", StaticFiles(directory="static"), name="static")
 
 
-@app.post("/login")
-def login(username: str = Form(...), password: str = Form(...)):
-    return {"username": username}
+@app.post("/file/info")
+async def get_file_info(file: UploadFile = File(...)):
+    contents = await file.read()
+
+    return {
+        "content_type": file.content_type,
+        "filename": file.filename
+    }
 
