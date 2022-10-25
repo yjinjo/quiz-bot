@@ -1,24 +1,28 @@
-from typing import Any, Optional, Dict
+from typing import Optional
 
-from fastapi import FastAPI, HTTPException
-
-
-class SomeFastAPIError(HTTPException):
-    def __init__(
-        self,
-        status_code: int,
-        detail: Any = None,
-        headers: Optional[Dict[str, Any]] = None
-        ) -> None:
-        super().__init__(
-            status_code=status_code, detail=detail, headers=headers
-        )
-
+from fastapi import FastAPI, Depends
+from pydantic import BaseModel, Field
 
 app = FastAPI()
 
 
-@app.get("/error")
-async def get_error():
-    raise SomeFastAPIError(503, "Hello")
+items = ({"name": "Foo"}, {"name": "Bar"}, {"name": "Baz"})
+
+
+class PydanticParams(BaseModel):
+    q: Optional[str] = Field(None, min_length=2)
+    offset: int = Field(0, ge=0)
+    limit: int = Field(100, gt=0)
+
+
+@app.get("/items/pydantic")
+async def get_items_with_pydantic(params: PydanticParams = Depends()):
+    response = {}
+    if params.q:
+        response.update({"q": params.q})
+
+    result = items[params.offset: params.offset + params.limit]
+    response.update({"items": result})
+
+    return response
 
