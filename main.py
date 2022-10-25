@@ -1,14 +1,20 @@
+from tempfile import NamedTemporaryFile
+from typing import IO
+
 from fastapi import FastAPI, File, UploadFile
+
 
 app = FastAPI()
 
 
-@app.post("/file/info")
-async def get_file_info(file: UploadFile = File(...)):
-    contents = await file.read()
+async def save_file(file: IO):
+    with NamedTemporaryFile("wb", delete=False) as tempfile:
+        tempfile.write(file.read())
+        return tempfile.name
 
-    return {
-        "content_type": file.content_type,
-        "filename": file.filename
-    }
+
+@app.post("/file/store")
+async def store_file(file: UploadFile = File(...)):
+    path = await save_file(file.file)
+    return {"filepath": path}
 
