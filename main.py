@@ -1,20 +1,24 @@
-from tempfile import NamedTemporaryFile
-from typing import IO
+from typing import Any, Optional, Dict
 
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, HTTPException
+
+
+class SomeFastAPIError(HTTPException):
+    def __init__(
+        self,
+        status_code: int,
+        detail: Any = None,
+        headers: Optional[Dict[str, Any]] = None
+        ) -> None:
+        super().__init__(
+            status_code=status_code, detail=detail, headers=headers
+        )
 
 
 app = FastAPI()
 
 
-async def save_file(file: IO):
-    with NamedTemporaryFile("wb", delete=False) as tempfile:
-        tempfile.write(file.read())
-        return tempfile.name
-
-
-@app.post("/file/store")
-async def store_file(file: UploadFile = File(...)):
-    path = await save_file(file.file)
-    return {"filepath": path}
+@app.get("/error")
+async def get_error():
+    raise SomeFastAPIError(503, "Hello")
 
