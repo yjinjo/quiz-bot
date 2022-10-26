@@ -30,22 +30,19 @@ fake_user_db = {
 class User(BaseModel):
     id: int
     username: str
-    email:str
-
-
-class User(BaseModel):
-    id: int
-    username: str
     email: str
+
 
 class UserPayload(User):
     exp: datetime
+
 
 async def create_access_token(data: dict, exp: Optional[timedelta] = None):
     expire = datetime.utcnow() + (exp or timedelta(minutes=30))
     user_info = UserPayload(**data, exp=expire)
 
     return jwt.encode(user_info.dict(), SECRET_KEY, algorithm=ALGORITHM)
+
 
 async def get_user(cred: HTTPAuthorizationCredentials = Depends(security)):
     token = cred.credentials
@@ -57,6 +54,7 @@ async def get_user(cred: HTTPAuthorizationCredentials = Depends(security)):
 
     return fake_user_db[user_info.username]
 
+
 @app.post("/login")
 async def issue_token(data: OAuth2PasswordRequestForm = Depends()):
     user = fake_user_db[data.username]
@@ -65,6 +63,8 @@ async def issue_token(data: OAuth2PasswordRequestForm = Depends()):
         return await create_access_token(user, exp=timedelta(minutes=30))
     raise HTTPException(401)
 
+
 @app.get("/users/me", response_model=User)
 async def get_current_user(user: dict = Depends(get_user)):
     return user
+
